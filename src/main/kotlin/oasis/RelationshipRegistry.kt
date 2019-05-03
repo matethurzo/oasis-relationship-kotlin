@@ -1,12 +1,29 @@
 package oasis
 
-class RelationshipRegistry {
+class RelationshipRegistry private constructor() {
 
-    public fun register(relationship: Relationship<*, *>): Boolean = relationships.add(relationship)
+    companion object {
 
-    public fun register(relationship: JavaRelationship<*, *>): Boolean = javaRelationships.add(relationship)
+        private val instance: RelationshipRegistry = RelationshipRegistry()
 
-    val relationships = mutableSetOf<Relationship<*, *>>()
-    val javaRelationships = mutableSetOf<JavaRelationship<*, *>>()
+        infix fun <T, U> register(relSupplier: () -> Relationship<T, U>): Unit {
+            val relationship = relSupplier.invoke()
+
+            with (instance) {
+                relationships.putIfAbsent(relationship.key, relationship)
+            }
+        }
+
+        infix fun <T, U> registerJava(relSupplier: () -> JavaRelationship<T, U>): Unit {
+            val relationship = relSupplier.invoke()
+
+            with (instance) {
+                javaRelationships.putIfAbsent(relationship.key, relationship)
+            }
+        }
+    }
+
+    val relationships = mutableMapOf<String, Relationship<*, *>>()
+    val javaRelationships = mutableMapOf<String, JavaRelationship<*, *>>()
 
 }

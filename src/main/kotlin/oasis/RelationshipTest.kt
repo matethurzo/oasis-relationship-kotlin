@@ -6,26 +6,23 @@ import com.liferay.journal.model.JournalFolder
 fun main(args: Array<String>) {
     println("RelationTest")
 
-    RelationshipRegistry().apply {
-        register(
-                JournalArticle::class.java relatesTo JournalFolder::class.java by { article ->
-                    article.folder
-                }
-        )
-        register(
-                JournalArticle::class.java relatesTo JournalFolder::class.java by { article ->
-                    article.folder
-                }
-        )
+    RelationshipRegistry registerJava {
+        JournalArticle::class.java relatesTo JournalFolder::class.java by { article -> article.folder }
+    }
+
+    RelationshipRegistry.apply {
+        registerJava {
+            JournalArticle::class.java relatesTo JournalFolder::class.java by { article -> article.folder }
+        }
+    }
+
+    RelationshipRegistry register {
+        Apple::class relatesTo Tomato::class by { apple -> Tomato(1) }
     }
 
     //println("Created thing ${relationship}")
 }
 
-/*String relatesTo Boolean by { str ->
-    when (str) {
-        "true", "yes", "1" -> true
-        "false", "no", "0" -> false
-        else -> false
-    }
-}*/
+data class Apple(val type: String)
+
+data class Tomato(val size: Int)

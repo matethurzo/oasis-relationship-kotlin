@@ -30,6 +30,9 @@ class Relationship<T, U>(val pair: RelationshipPair<T, U>, val relation: (T) -> 
         return "Relationship between ${pairThis} and ${pairThat} with relation ${relation}"
     }
 
+    val key
+        get() = "${pair.first}#${pair.second}"
+
 }
 
 class JavaRelationship<T, U>(val pair: JavaRelationshipPair<T, U>, val relation: (T) -> U) {
@@ -40,10 +43,11 @@ class JavaRelationship<T, U>(val pair: JavaRelationshipPair<T, U>, val relation:
         return "Relationship between ${pairThis} and ${pairThat} with relation ${relation}"
     }
 
+    val key
+        get() = "${pair.first}#${pair.second}"
+
 }
 
-infix fun Any.relatesTo(that: Any): RelationshipPair<Any, Any> {
-    return RelationshipPair(this, that)
-}
+infix fun Any.relatesTo(that: Any): RelationshipPair<Any, Any> = RelationshipPair(this, that)
 
 infix fun <T, U> java.lang.Class<T>.relatesTo(that: java.lang.Class<U>): JavaRelationshipPair<T, U> = JavaRelationshipPair(this, that)
