@@ -20,21 +20,19 @@ fun main(args: Array<String>) {
     }
 
     registry register {
-        Apple::class relatesTo Tomato::class by { apple -> single { apple.toTomato() } }
+        Apple::class relatesTo Tomato::class by { apple -> apple.manyTomatoes() }
     }
-
-    val appleRel = Apple::class relatesTo Tomato::class by { apple -> single { apple.toTomato() } }
 
     val apple = Apple("test")
 
-    apple.outgoing()
+    apple.outgoing().forEach { println(it) }
 }
 
 class Apple(val type: String) {
 
     public fun toTomato() : Tomato = Tomato(1)
 
-    public fun manyTomatoes(): List<Tomato> = listOf(Tomato(1), Tomato(2))
+    public fun manyTomatoes(): Collection<Tomato> = listOf(Tomato(1), Tomato(2))
 
 }
 
