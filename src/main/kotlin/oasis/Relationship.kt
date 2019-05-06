@@ -1,53 +1,45 @@
 package oasis
 
-import java.io.Serializable
+import kotlin.reflect.KClass
 
-data class RelationshipPair<T, U>(val first: T, val second: U) : Serializable {
+/**
+ * The infix function to start building a relationship between models
+ */
+infix fun <T: Any, U: Any> KClass<T>.relatesTo(that: KClass<U>): RelationshipPair<T, U> = RelationshipPair(this, that)
 
-    override fun toString(): String = "Relationship pair between ${first} and ${second}"
+/**
+ * Data class storing a relationship pair between two model types
+ */
+data class RelationshipPair<T: Any, U: Any>(val first: KClass<T>, val second: KClass<U>)
 
-}
+/**
+ * The infix function that defines the relationship between an already defined pair of model types
+ */
+infix fun <T: Any, U: Any> RelationshipPair<T, U>.by(relation: (T) -> Collection<U>): Relationship<T, U> = Relationship(this, relation)
 
-infix fun <T, U> RelationshipPair<T, U>.by(relation: (T) -> U):  Relationship<T, U> {
-    return Relationship(this, relation)
-}
+/**
+ * The function single can be used in relation definitions where the relation returns only a single value. Eg.: apple -> single { apple.tree }
+ */
+inline fun <T> single(value: () -> T): Collection<T> = listOf<T>(value.invoke())
 
-data class JavaRelationshipPair<T, U>(val first: Class<T>, val second: Class<U>) {
+/**
+ * Relationship class representing a relationship. The relationship is described by a type pair and a relation function
+ */
+class Relationship<T: Any, U: Any>(val pair: RelationshipPair<T, U>, val relation: (T) -> Collection<U>) {
 
-    override fun toString(): String = "Relationship pair between ${first} and ${second}"
+    operator fun component1() = pair.first
 
-}
+    operator fun component2() = pair.second
 
-infix fun <T, U> JavaRelationshipPair<T, U>.by(relation: (T) -> U):  JavaRelationship<T, U> {
-    return JavaRelationship(this, relation)
-}
-
-class Relationship<T, U>(val pair: RelationshipPair<T, U>, val relation: (T) -> U) {
-
-    override fun toString(): String {
-        val (pairThis, pairThat) = pair
-
-        return "Relationship between ${pairThis} and ${pairThat} with relation ${relation}"
-    }
-
-    val key
-        get() = "${pair.first}#${pair.second}"
-
-}
-
-class JavaRelationship<T, U>(val pair: JavaRelationshipPair<T, U>, val relation: (T) -> U) {
+    operator fun component3(): (T) -> Collection<U> = relation
 
     override fun toString(): String {
         val (pairThis, pairThat) = pair
 
-        return "Relationship between ${pairThis} and ${pairThat} with relation ${relation}"
+        return "Relationship between $pairThis and $pairThat with relation $relation"
     }
 
-    val key
+    val key: String
         get() = "${pair.first}#${pair.second}"
 
 }
-
-infix fun Any.relatesTo(that: Any): RelationshipPair<Any, Any> = RelationshipPair(this, that)
-
-infix fun <T, U> java.lang.Class<T>.relatesTo(that: java.lang.Class<U>): JavaRelationshipPair<T, U> = JavaRelationshipPair(this, that)

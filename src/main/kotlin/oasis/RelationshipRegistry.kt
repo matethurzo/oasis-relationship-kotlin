@@ -1,29 +1,36 @@
 package oasis
 
+import kotlin.reflect.KClass
+
 class RelationshipRegistry private constructor() {
 
     companion object {
 
         private val instance: RelationshipRegistry = RelationshipRegistry()
 
-        infix fun <T, U> register(relSupplier: () -> Relationship<T, U>): Unit {
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        infix fun <T: Any, U: Any> register(relSupplier: () -> Relationship<T, U>) {
             val relationship = relSupplier.invoke()
 
             with (instance) {
-                relationships.putIfAbsent(relationship.key, relationship)
+                val (from) = relationship
+
+                if (relationships.containsKey(from)) {
+                    relationships[from].let { set -> set?.add(relationship) }
+                } else {
+                    relationships.put(from, mutableSetOf(relationship))
+                }
             }
         }
 
-        infix fun <T, U> registerJava(relSupplier: () -> JavaRelationship<T, U>): Unit {
-            val relationship = relSupplier.invoke()
-
+        @Suppress("UNCHECKED_CAST")
+        fun <T: Any> getRelationship(from: KClass<T>): Set<Relationship<T, *>>? {
             with (instance) {
-                javaRelationships.putIfAbsent(relationship.key, relationship)
+                return relationships[from] as Set<Relationship<T, *>>
             }
         }
     }
 
-    val relationships = mutableMapOf<String, Relationship<*, *>>()
-    val javaRelationships = mutableMapOf<String, JavaRelationship<*, *>>()
+    val relationships = mutableMapOf<KClass<*>, MutableSet<Relationship<*, *>>>()
 
 }
