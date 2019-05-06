@@ -2,8 +2,6 @@ package oasis
 
 import com.liferay.journal.model.JournalArticle
 import com.liferay.journal.model.JournalFolder
-import java.util.LinkedHashSet
-import kotlin.reflect.KClass
 import oasis.RelationshipRegistry as registry
 
 fun main(args: Array<String>) {
@@ -20,34 +18,36 @@ fun main(args: Array<String>) {
     }
 
     registry register {
-        Apple::class relatesTo Tomato::class by { apple -> single { apple.toTomato() } }
+        Apple::class relatesTo Tomato::class by { apple -> apple.manyTomatoes() }
     }
 
-    val appleRel = Apple::class relatesTo Tomato::class by { apple -> single { apple.toTomato() } }
+    registry register {
+        Tomato::class relatesTo Apple::class by { tomato -> single { tomato.toApple() } }
+    }
 
-    val (egy, ketto) = appleRel
+    val apple = Apple("test")
 
-    println("$egy ### $ketto")
+    apple.related().forEach { println(it) }
 
-    val apple = Apple("basic")
+    val tomato = Tomato(2)
 
-    val coll = single { apple }
-
-    //apple.related()
-
-    println(LinkedHashSet::class is KClass<LinkedHashSet<*>>)
-    println(LinkedHashSet::class.java)
-    println(LinkedHashSet<java.lang.Integer>::javaClass)
-
-    //println("Created thing ${relationship}")
+    tomato.related().forEach { println(it) }
 }
 
 class Apple(val type: String) {
 
     public fun toTomato() : Tomato = Tomato(1)
 
-    public fun manyTomatoes(): List<Tomato> = listOf(Tomato(1), Tomato(2))
+    public fun manyTomatoes(): Collection<Tomato> = listOf(Tomato(1), Tomato(2))
+
+    override fun toString() = "Apple $type"
 
 }
 
-data class Tomato(val size: Int)
+class Tomato(val size: Int) {
+
+    public fun toApple() : Apple = Apple("tom")
+
+    override fun toString() = "Tomato $size"
+
+}

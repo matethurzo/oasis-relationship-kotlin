@@ -13,7 +13,7 @@ infix fun <T: Any, U: Any> KClass<T>.relatesTo(that: KClass<U>): RelationshipPai
 data class RelationshipPair<T: Any, U: Any>(val first: KClass<T>, val second: KClass<U>)
 
 /**
- * The infix function that defines the relationship between an already defined pair of model types
+ * The infix function that defines the related relationship between an already defined pair of model types
  */
 infix fun <T: Any, U: Any> RelationshipPair<T, U>.by(relation: (T) -> Collection<U>): Relationship<T, U> = Relationship(this, relation)
 
@@ -42,4 +42,12 @@ class Relationship<T: Any, U: Any>(val pair: RelationshipPair<T, U>, val relatio
     val key: String
         get() = "${pair.first}#${pair.second}"
 
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <T: Any> T.related(): Collection<Any> {
+    return RelationshipRegistry.getRelationships(this::class)
+            .map { it as Relationship<T, Any> }
+            .map { (_, _, relation) -> relation.invoke(this) }
+            .toSet()
 }
