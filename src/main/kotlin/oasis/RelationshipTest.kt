@@ -2,8 +2,6 @@ package oasis
 
 import com.liferay.journal.model.JournalArticle
 import com.liferay.journal.model.JournalFolder
-import java.util.LinkedHashSet
-import kotlin.reflect.KClass
 import oasis.RelationshipRegistry as registry
 
 fun main(args: Array<String>) {
@@ -23,9 +21,17 @@ fun main(args: Array<String>) {
         Apple::class relatesTo Tomato::class by { apple -> apple.manyTomatoes() }
     }
 
+    registry register {
+        Tomato::class relatesTo Apple::class by { tomato -> single { tomato.toApple() } }
+    }
+
     val apple = Apple("test")
 
-    apple.outgoing().forEach { println(it) }
+    apple.related().forEach { println(it) }
+
+    val tomato = Tomato(2)
+
+    tomato.related().forEach { println(it) }
 }
 
 class Apple(val type: String) {
@@ -34,6 +40,14 @@ class Apple(val type: String) {
 
     public fun manyTomatoes(): Collection<Tomato> = listOf(Tomato(1), Tomato(2))
 
+    override fun toString() = "Apple $type"
+
 }
 
-data class Tomato(val size: Int)
+class Tomato(val size: Int) {
+
+    public fun toApple() : Apple = Apple("tom")
+
+    override fun toString() = "Tomato $size"
+
+}

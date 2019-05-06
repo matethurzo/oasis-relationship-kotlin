@@ -13,12 +13,14 @@ class RelationshipRegistry private constructor() {
             val relationship = relSupplier.invoke()
 
             with (instance) {
+                relationships.putIfAbsent(relationship.key, relationship)
+
                 val (from) = relationship
 
-                if (outgoingRelationships.containsKey(from)) {
-                    outgoingRelationships[from].let { map -> map?.putIfAbsent(relationship.key, relationship) }
+                if (relationshipMapping.containsKey(from)) {
+                    relationshipMapping[from].let { set -> set?.add(relationship.key) }
                 } else {
-                    outgoingRelationships.put(from, mutableMapOf(Pair(relationship.key, relationship)))
+                    relationshipMapping.put(from, mutableSetOf(relationship.key))
                 }
             }
         }
@@ -26,19 +28,19 @@ class RelationshipRegistry private constructor() {
         @Suppress("UNCHECKED_CAST")
         fun <T: Any> getRelationships(from: KClass<T>): Set<Relationship<T, Any>> {
             with (instance) {
-                val modelRels =
-                        if (outgoingRelationships.contains(from)) {
-                            outgoingRelationships[from]
+                val mappings =
+                        if (relationshipMapping.contains(from)) {
+                            relationshipMapping[from]
                         } else {
-                            emptyMap<String, Relationship<*, *>>()
+                            emptySet<String>()
                         }
 
-                return modelRels!!.values.toSet() as Set<Relationship<T, Any>>
+                return mappings!!.map { relationships[it] }.toSet() as Set<Relationship<T, Any>>
             }
         }
     }
 
-    val outgoingRelationships = mutableMapOf<KClass<*>, MutableMap<String, Relationship<*, *>>>()
-    val incomingRelationships = mutableMapOf<KClass<*>, MutableMap<String, Relationship<*, *>>>()
+    val relationships = mutableMapOf<String, Relationship<*, *>>()
+    val relationshipMapping = mutableMapOf<KClass<*>, MutableSet<String>>()
 
 }
