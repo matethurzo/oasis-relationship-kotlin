@@ -25,21 +25,9 @@ fun main(args: Array<String>) {
 
     val appleRel = Apple::class relatesTo Tomato::class by { apple -> single { apple.toTomato() } }
 
-    val (egy, ketto) = appleRel
+    val apple = Apple("test")
 
-    println("$egy ### $ketto")
-
-    val apple = Apple("basic")
-
-    val coll = single { apple }
-
-    //apple.related()
-
-    println(LinkedHashSet::class is KClass<LinkedHashSet<*>>)
-    println(LinkedHashSet::class.java)
-    println(LinkedHashSet<java.lang.Integer>::javaClass)
-
-    //println("Created thing ${relationship}")
+    apple.outgoing()
 }
 
 class Apple(val type: String) {

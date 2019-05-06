@@ -15,22 +15,30 @@ class RelationshipRegistry private constructor() {
             with (instance) {
                 val (from) = relationship
 
-                if (relationships.containsKey(from)) {
-                    relationships[from].let { map -> map?.putIfAbsent(relationship.key, relationship) }
+                if (outgoingRelationships.containsKey(from)) {
+                    outgoingRelationships[from].let { map -> map?.putIfAbsent(relationship.key, relationship) }
                 } else {
-                    relationships.put(from, mutableMapOf(Pair(relationship.key, relationship)))
+                    outgoingRelationships.put(from, mutableMapOf(Pair(relationship.key, relationship)))
                 }
             }
         }
 
         @Suppress("UNCHECKED_CAST")
-        fun <T: Any> getRelationship(from: KClass<T>): Set<Relationship<T, *>>? {
+        fun <T: Any> getRelationships(from: KClass<T>): Set<Relationship<T, Any>> {
             with (instance) {
-                return relationships[from] as Set<Relationship<T, *>>
+                val modelRels =
+                        if (outgoingRelationships.contains(from)) {
+                            outgoingRelationships[from]
+                        } else {
+                            emptyMap<String, Relationship<*, *>>()
+                        }
+
+                return modelRels!!.values.toSet() as Set<Relationship<T, Any>>
             }
         }
     }
 
-    val relationships = mutableMapOf<KClass<*>, MutableMap<String, Relationship<*, *>>>()
+    val outgoingRelationships = mutableMapOf<KClass<*>, MutableMap<String, Relationship<*, *>>>()
+    val incomingRelationships = mutableMapOf<KClass<*>, MutableMap<String, Relationship<*, *>>>()
 
 }

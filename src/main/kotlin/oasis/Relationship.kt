@@ -43,3 +43,23 @@ class Relationship<T: Any, U: Any>(val pair: RelationshipPair<T, U>, val relatio
         get() = "${pair.first}#${pair.second}"
 
 }
+
+@Suppress("UNCHECKED_CAST")
+fun <T: Any> T.outgoing(): Collection<Any> {
+    return RelationshipRegistry.getRelationships(this::class)
+            .map { it as Relationship<T, Any> }
+            .map { (_, _, relation) -> relation.invoke(this) }
+            .toSet()
+}
+
+fun <T: Any> T.incoming(): Collection<Any> {
+    RelationshipRegistry.getRelationships(this::class)
+
+    return emptyList()
+}
+
+fun <T: Any> T.both(): Collection<Any> {
+    RelationshipRegistry.getRelationships(this::class)
+
+    return emptyList()
+}
