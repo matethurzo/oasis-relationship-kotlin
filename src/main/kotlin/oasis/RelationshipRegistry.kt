@@ -16,9 +16,9 @@ class RelationshipRegistry private constructor() {
                 val (from) = relationship
 
                 if (relationships.containsKey(from)) {
-                    relationships[from].let { set -> set?.add(relationship) }
+                    relationships[from].let { map -> map?.putIfAbsent(relationship.key, relationship) }
                 } else {
-                    relationships.put(from, mutableSetOf(relationship))
+                    relationships.put(from, mutableMapOf(Pair(relationship.key, relationship)))
                 }
             }
         }
@@ -31,6 +31,6 @@ class RelationshipRegistry private constructor() {
         }
     }
 
-    val relationships = mutableMapOf<KClass<*>, MutableSet<Relationship<*, *>>>()
+    val relationships = mutableMapOf<KClass<*>, MutableMap<String, Relationship<*, *>>>()
 
 }
